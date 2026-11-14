@@ -92,6 +92,6 @@ ready). Live: https://www.davyrockett.com/call-time/ See README.md.
   sw.js only serves the cached app page for `/` and `index.html`, so help pages load as themselves. Alarms: heads-up (Settings, "Free time almost over"), start getting ready,
   leave. Clock alarms have no date, so the button is greyed until 24 h before leaving; old alarms stay in Clock
   (turned off once rung). If the page never goes to the background within 2.5 s, a pop-up says Shortcuts
-  didn't open. Not yet confirmed on David's iPhone.
+  didn't open. Confirmed working on David's iPhone 2026-11-14 (test alarm appeared in Clock).
 - **Calendar files, dropped (tested by David 2026-11-14):** in iPhone Safari only a downloaded Blob file opened
   Calendar; in a Home Screen app nothing did (data: links, real .ics URLs, SW-made .ics, share sheet).
