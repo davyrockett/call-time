@@ -420,6 +420,8 @@ $('caltest').addEventListener('click', async (e) => {
     if (n === '3') location.href = swUrl;
     if (n === '4') window.open(swUrl, '_blank');
     if (n === '5') location.href = 'cal-test.ics';
+    // Hands the plain calendar file to the Safari app (iOS 17+), from the Home Screen app.
+    if (n === '7') location.href = 'x-safari-https://' + location.host + location.pathname.replace(/[^/]*$/, '') + 'cal-test.ics';
     if (n === '6') {
       const file = new File([ics], 'Call Time test.ics', { type: 'text/calendar' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file] });
