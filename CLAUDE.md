@@ -82,8 +82,10 @@ ready). Live: https://www.davyrockett.com/call-time/ See README.md.
 - **Alarms (v6, 2026-11-14):** a web app can't make Clock alarms, so "Set alarms" opens
   `shortcuts://run-shortcut?name=Call%20Time%20Alarms&input=text&text=…`, one alarm per line, time first
   ("9:45 AM Get ready for Idlewild: Shower + shave"). David builds the shortcut once from the steps in Settings:
-  Split Text (Shortcut Input, New Lines) → Repeat with Each → Get Dates from Input (Repeat Item) → Create Alarm
-  (time = Dates, label = Repeat Item). Alarms: heads-up (Settings, "Free time almost over"), start getting ready,
+  Split Text (Shortcut Input, New Lines) → Repeat with Each → Get Dates from Input (Repeat Item) → Add Alarm
+  (Time = Dates, Name = Repeat Item). iOS 27 names (from the iOS 27.2 simulator runtime): the Clock action is "Add Alarm"
+  (MobileTimerSupport.CreateAlarmIntent: Time, Name, Repeat, Snooze); Clock's alternative names are "Alarm"/"Timer";
+  a new shortcut opens in "Describe a Shortcut" and the action editor is behind Edit. The simulator has no Clock app. Alarms: heads-up (Settings, "Free time almost over"), start getting ready,
   leave. Clock alarms have no date, so the button is greyed until 24 h before leaving; old alarms stay in Clock
   (turned off once rung). If the page never goes to the background within 2.5 s, a pop-up says Shortcuts
   didn't open. Not yet confirmed on David's iPhone.
