@@ -397,6 +397,37 @@ $('set-update').onclick = async () => {
   } else { ver.textContent = `You're on the latest version (${window.APP_VERSION}).`; ub.disabled = false; }
 };
 
+/* ---------- TEMPORARY calendar test (2026-11-14): which way opens Calendar on David's iPhone ---------- */
+function testIcs() {
+  const d = new Date(Date.now() + 86400000);
+  return buildIcs({ id: 'calltest', what: 'Call Time test', day: ymd(d), time: '12:00', travel: 30, steps: [{ name: 'Get dressed', min: 10 }] });
+}
+$('caltest').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-test]');
+  if (!b) return;
+  const ics = testIcs(), n = b.dataset.test, out = $('caltest-out');
+  const dataUrl = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+  const swUrl = 'cal/plan.ics?d=' + encodeURIComponent(ics);
+  out.textContent = `Tried ${n}${navigator.standalone ? ' (Home Screen app)' : ''}${navigator.serviceWorker && navigator.serviceWorker.controller ? '' : ' (no offline copy yet: 3 and 4 may not work)'}.`;
+  try {
+    if (n === '1') window.open(dataUrl, '_blank');
+    if (n === '2') {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+      a.download = 'Call Time test.ics';
+      document.body.append(a); a.click(); a.remove();
+    }
+    if (n === '3') location.href = swUrl;
+    if (n === '4') window.open(swUrl, '_blank');
+    if (n === '5') location.href = 'cal-test.ics';
+    if (n === '6') {
+      const file = new File([ics], 'Call Time test.ics', { type: 'text/calendar' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file] });
+      else out.textContent = 'Tried 6: this device can\'t share files.';
+    }
+  } catch (err) { out.textContent = `Tried ${n}: ${err.message}`; }
+});
+
 tick();
 
 /* ---------- offline support + updates (see sw.js) ---------- */

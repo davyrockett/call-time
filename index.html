@@ -123,6 +123,18 @@
         <ul class="routines" id="routines"></ul>
         <button type="button" class="btn" id="routine-add">+ Add a routine</button>
       </div>
+      <!-- TEMPORARY (2026-11-14): finding which way opens Calendar on David's iPhone. Remove once a winner is picked. -->
+      <div class="set-block" id="caltest">
+        <b>Calendar test (temporary)</b>
+        <p class="cap">Each button tries a different way to open a test plan in Calendar (tomorrow at noon, "Call Time test").
+          Note which numbers open Calendar. You don't need to add the events: tap Cancel or Done.</p>
+        <div class="btns">
+          <button type="button" class="btn" data-test="1">1</button><button type="button" class="btn" data-test="2">2</button>
+          <button type="button" class="btn" data-test="3">3</button><button type="button" class="btn" data-test="4">4</button>
+          <button type="button" class="btn" data-test="5">5</button><button type="button" class="btn" data-test="6">6</button>
+        </div>
+        <p class="cap" id="caltest-out"></p>
+      </div>
       <div class="set-row"><div><b>Calendar heads-up</b><p class="cap">An extra alert this long before your free time ends.</p></div>
         <div class="seg" data-key="headsup" role="group" aria-label="Calendar heads-up">
           <button type="button" class="btn" data-v="0">Off</button><button type="button" class="btn" data-v="5">5 m</button><button type="button" class="btn" data-v="10">10 m</button><button type="button" class="btn" data-v="15">15 m</button>
@@ -143,7 +155,7 @@
 
 <script>
 // The version shown in Settings. tools/bump.sh keeps this in step with VERSION in sw.js.
-window.APP_VERSION = 'v1';
+window.APP_VERSION = 'v2';
 </script>
 <script src="app.js"></script>
 </body>
