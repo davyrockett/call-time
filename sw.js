@@ -2,7 +2,7 @@
 //
 // IMPORTANT: whenever any file below changes, bump VERSION (tools/bump.sh).
 // That is how phones learn there's an update to download.
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CACHE = `calltime-${VERSION}`;
 
 const ASSETS = [
@@ -52,7 +52,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== location.origin) return;
   // Opening the app itself (not a file like a calendar file) always gets the saved page.
-  if (request.mode === 'navigate' && !/\.(ics|txt)$/.test(url.pathname)) {
+  // Other pages (like help/guide.html) come from the saved copy or the network as they are.
+  if (request.mode === 'navigate' && /\/(index\.html)?$/.test(url.pathname)) {
     event.respondWith(caches.match('./index.html').then((cached) => cached || fetch(request)));
     return;
   }

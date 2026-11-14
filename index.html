@@ -126,17 +126,8 @@
       <div class="set-block">
         <b>Alarms setup</b>
         <p class="cap">Call Time sets alarms in the Clock app through a shortcut. Make it once on your iPhone:</p>
-        <details class="howto"><summary>Show the steps</summary>
-          <ol>
-            <li>Open the <b>Shortcuts</b> app and tap <b>+</b>. It opens "Describe a Shortcut": tap <b>Edit</b> (top right) to add actions yourself.</li>
-            <li>Tap <b>New Shortcut</b> at the top, choose <b>Rename</b> and call it exactly <b>Call Time Alarms</b>.</li>
-            <li>In the search box at the bottom, find <b>Split Text</b> and tap it. Tap its blue <b>Text</b> and pick <b>Shortcut Input</b>. Leave "New Lines".</li>
-            <li>Search for <b>Repeat with Each</b> and tap it. It repeats with each item in Split Text.</li>
-            <li>Search for <b>Get Dates from Input</b> and tap it. It should land inside the repeat (drag it there if not). Tap its blue word and pick <b>Repeat Item</b>.</li>
-            <li>Search for <b>Add Alarm</b> (from the Clock app, which may show as "Alarm") and tap it, inside the repeat under Get Dates. Set <b>Time</b> to <b>Dates</b>. Tap the arrow to show more, and set <b>Name</b> to <b>Repeat Item</b>. Turn Repeat off if it's on.</li>
-            <li>Tap the back arrow to save. Come back here and tap <b>Send a test alarm</b>. The first time, allow the shortcut to use Clock.</li>
-          </ol>
-        </details>
+        <p><a class="btn primary" href="help/guide.html">Step-by-step with pictures</a></p>
+        <p class="cap">11 short steps in the Shortcuts app: Split Text → Repeat with Each → Get Dates from Input → Add Alarm, named <b>Call Time Alarms</b>.</p>
         <button type="button" class="btn" id="alarm-test">Send a test alarm</button>
         <p class="cap">The test sets one alarm, "Call Time test", for 2 minutes from now. Turn it off in Clock afterwards.</p>
       </div>
@@ -171,7 +162,7 @@
 
 <script>
 // The version shown in Settings. tools/bump.sh keeps this in step with VERSION in sw.js.
-window.APP_VERSION = 'v7';
+window.APP_VERSION = 'v8';
 </script>
 <script src="app.js"></script>
 </body>

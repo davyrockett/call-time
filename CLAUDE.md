@@ -85,7 +85,11 @@ ready). Live: https://www.davyrockett.com/call-time/ See README.md.
   Split Text (Shortcut Input, New Lines) → Repeat with Each → Get Dates from Input (Repeat Item) → Add Alarm
   (Time = Dates, Name = Repeat Item). iOS 27 names (from the iOS 27.2 simulator runtime): the Clock action is "Add Alarm"
   (MobileTimerSupport.CreateAlarmIntent: Time, Name, Repeat, Snooze); Clock's alternative names are "Alarm"/"Timer";
-  a new shortcut opens in "Describe a Shortcut" and the action editor is behind Edit. The simulator has no Clock app. Alarms: heads-up (Settings, "Free time almost over"), start getting ready,
+  a new shortcut opens in "Describe a Shortcut" and the action editor is behind Edit. The simulator has no Clock app.
+- **Picture guide** `help/guide.html` (linked from Settings > Alarms setup): iPhone 17 / iOS 27.2 Simulator screenshots, orange outlines;
+  the Add Alarm card is drawn (no Clock in the Simulator). Raw screenshots in `help/raw/` (gitignored). Gotchas found:
+  Repeat with Each and Get Dates don't link up by themselves; Get Dates lands below End Repeat and must be dragged in.
+  sw.js only serves the cached app page for `/` and `index.html`, so help pages load as themselves. Alarms: heads-up (Settings, "Free time almost over"), start getting ready,
   leave. Clock alarms have no date, so the button is greyed until 24 h before leaving; old alarms stay in Clock
   (turned off once rung). If the page never goes to the background within 2.5 s, a pop-up says Shortcuts
   didn't open. Not yet confirmed on David's iPhone.

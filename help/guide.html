@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alarm Shortcut Setup</title>
+<meta name="description" content="How to make the Call Time Alarms shortcut on iPhone (iOS 27), step by step with pictures.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+  :root { --bg:#F1F0EC; --card:#FFFFFF; --ink:#2B2118; --muted:#676767; --accent:#F57C14; --accent-ink:#9A4204; --line:#E2DED6; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#151310; --card:#211D18; --ink:#F3EDE4; --muted:#A3A3A3; --accent:#FF9433; --accent-ink:#FFBD85; --line:#3A332B; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.5 'Atkinson Hyperlegible', system-ui, sans-serif; }
+  .wrap { max-width:720px; margin:0 auto; padding:16px 16px 48px; }
+  .back { display:inline-block; color:var(--accent-ink); font-weight:700; text-decoration:none; margin:4px 0 12px; }
+  h1 { font:800 34px/1.05 'Big Shoulders Display', sans-serif; text-transform:uppercase; margin:0 0 8px; }
+  .lead { color:var(--muted); margin:0 0 20px; }
+  ol { list-style:none; padding:0; margin:0; counter-reset:step; display:flex; flex-direction:column; gap:16px; }
+  li { counter-increment:step; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; display:grid; grid-template-columns:1fr; gap:12px; }
+  li::before { content:counter(step); display:inline-grid; place-items:center; width:32px; height:32px; border-radius:50%; background:var(--accent); color:#fff; font-weight:700; }
+  li p { margin:0; }
+  .note { color:var(--muted); font-size:15px; }
+  img { width:100%; max-width:300px; height:auto; border-radius:22px; border:1px solid var(--line); display:block; }
+  @media (min-width:640px) { li { grid-template-columns:32px 1fr 260px; align-items:start; } li > div { grid-column:2; } li img { grid-column:3; grid-row:1 / span 2; } }
+  .final { margin-top:24px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; }
+  .final h2 { font:800 24px/1.1 'Big Shoulders Display', sans-serif; text-transform:uppercase; margin:0 0 8px; }
+  b.btn { color:var(--accent-ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← Back to Call Time</a>
+  <h1>Make the alarm shortcut</h1>
+  <p class="lead">Once, on your iPhone, in the Shortcuts app. Pictures from iOS 27. Orange outlines show where to tap.</p>
+  <ol>
+    <li><div><p>Open <b>Shortcuts</b> and tap <b>+</b>. A "Describe a Shortcut" screen opens. Tap <b>Edit</b> (top right) to add actions yourself.</p></div>
+      <img src="step01-edit.jpg" alt="New shortcut screen with the Edit button outlined" loading="lazy"></li>
+    <li><div><p>In the search box at the bottom, type <b>split</b> and tap <b>Split Text</b>.</p></div>
+      <img src="step02-split.jpg" alt="Search results with Split Text outlined" loading="lazy"></li>
+    <li><div><p>Tap the pale <b>Text</b> in the new action, then tap <b>Select Variable</b>.</p></div>
+      <img src="step03-text.jpg" alt="Split Text action with Text and Select Variable outlined" loading="lazy"></li>
+    <li><div><p>Tap <b>Shortcut Input</b>. A "Receive … from Nowhere" block appears at the top by itself. Leave it as it is.</p></div>
+      <img src="step04-input.jpg" alt="Select Variable screen with Shortcut Input outlined" loading="lazy"></li>
+    <li><div><p>Search <b>repeat</b> and tap <b>Repeat with Each</b>.</p></div>
+      <img src="step05-repeat.jpg" alt="Search results with Repeat with Each outlined" loading="lazy"></li>
+    <li><div><p>Tap the pale <b>Items</b> in the repeat, then tap <b>Split Text</b>.</p></div>
+      <img src="step06-items.jpg" alt="Menu with Split Text outlined, above the Items placeholder" loading="lazy"></li>
+    <li><div><p>Search <b>get dates</b> and tap <b>Get Dates from Input</b>.</p></div>
+      <img src="step07-dates.jpg" alt="Search results with Get Dates from Input outlined" loading="lazy"></li>
+    <li><div><p>It lands <b>below End Repeat</b>, outside the loop. Press and hold it, then drag it up above <b>End Repeat</b>.</p></div>
+      <img src="step08-drag.jpg" alt="Get dates action below End Repeat, with an arrow showing it being dragged up" loading="lazy"></li>
+    <li><div><p>Inside the loop it changes to <b>Get dates from Repeat Item</b> by itself.</p></div>
+      <img src="step09-inside.jpg" alt="Get dates from Repeat Item, now indented inside the repeat" loading="lazy"></li>
+    <li><div><p>Search <b>add alarm</b> and tap <b>Add Alarm</b> (Clock, listed under "Alarms"). Drag it inside the loop under Get dates if it lands below End Repeat. It reads "Create an Alarm for <i>Time</i> called <i>Name</i>":</p>
+      <p>Tap <b>Time</b> → <b>Select Variable</b> → <b>Dates</b>.<br>Tap <b>Name</b> → <b>Select Variable</b> → <b>Repeat Item</b>.</p>
+      <p class="note">This card is drawn: the iPhone Simulator has no Clock app, so I couldn't screenshot the real one. The wording comes from iOS 27's own files.</p></div>
+      <img src="step10-alarm.jpg" alt="Drawing of the Add Alarm card inside the loop, with Dates and Repeat Item outlined" loading="lazy"></li>
+    <li><div><p>Tap the name at the top, choose <b>Rename</b> and type exactly <b>Call Time Alarms</b>. Then tap the back arrow to save.</p></div>
+      <img src="step11-rename.jpg" alt="Name menu with Rename outlined" loading="lazy"></li>
+  </ol>
+  <div class="final">
+    <h2>Finished, it looks like this</h2>
+    <p>Then go back to Call Time, open Settings and tap <b class="btn">Send a test alarm</b>. The first time, allow the shortcut to use Clock. A "Call Time test" alarm should appear in Clock for 2 minutes from now.</p>
+    <img src="finished.jpg" alt="The finished Call Time Alarms shortcut: Receive, Split Text, Repeat, Get dates, Create an Alarm, End Repeat" loading="lazy">
+  </div>
+</div>
+</body>
+</html>
