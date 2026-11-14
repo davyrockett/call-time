@@ -123,19 +123,6 @@
         <ul class="routines" id="routines"></ul>
         <button type="button" class="btn" id="routine-add">+ Add a routine</button>
       </div>
-      <!-- TEMPORARY (2026-11-14): finding which way opens Calendar on David's iPhone. Remove once a winner is picked. -->
-      <div class="set-block" id="caltest">
-        <b>Calendar test (temporary)</b>
-        <p class="cap">Each button tries a different way to open a test plan in Calendar (tomorrow at noon, "Call Time test").
-          Note which numbers open Calendar. You don't need to add the events: tap Cancel or Done.</p>
-        <div class="btns">
-          <button type="button" class="btn" data-test="1">1</button><button type="button" class="btn" data-test="2">2</button>
-          <button type="button" class="btn" data-test="3">3</button><button type="button" class="btn" data-test="4">4</button>
-          <button type="button" class="btn" data-test="5">5</button><button type="button" class="btn" data-test="6">6</button>
-          <button type="button" class="btn" data-test="7">7 (opens Safari)</button>
-        </div>
-        <p class="cap" id="caltest-out"></p>
-      </div>
       <div class="set-row"><div><b>Calendar heads-up</b><p class="cap">An extra alert this long before your free time ends.</p></div>
         <div class="seg" data-key="headsup" role="group" aria-label="Calendar heads-up">
           <button type="button" class="btn" data-v="0">Off</button><button type="button" class="btn" data-v="5">5 m</button><button type="button" class="btn" data-v="10">10 m</button><button type="button" class="btn" data-v="15">15 m</button>
@@ -152,11 +139,22 @@
   </div>
 </div>
 
+<!-- Add to Calendar (in Safari, sent from the Home Screen app) / Safari didn't open -->
+<div class="tmodal" id="cal-sheet" role="dialog" aria-modal="true" aria-labelledby="cal-sheet-title" hidden>
+  <div class="tmodal-card">
+    <div class="sheet-head">
+      <h2 id="cal-sheet-title">Add to Calendar</h2>
+      <button type="button" class="btn icon x" data-close aria-label="Close" title="Close"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="settings" id="cal-sheet-body"></div>
+  </div>
+</div>
+
 <div class="update" id="update-banner" role="status" hidden><span>A new version is ready.</span><button type="button" class="btn primary" id="update-btn">Update</button></div>
 
 <script>
 // The version shown in Settings. tools/bump.sh keeps this in step with VERSION in sw.js.
-window.APP_VERSION = 'v3';
+window.APP_VERSION = 'v4';
 </script>
 <script src="app.js"></script>
 </body>

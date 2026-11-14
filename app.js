@@ -123,8 +123,8 @@ function render() {
     $('timeline').innerHTML = rows.join('');
     // Calendar
     const note = $('cal-note');
-    if (!p.cal) { note.className = 'cap cal-note'; note.textContent = 'Adds alerts to your phone\'s calendar, so they ring even with this app closed.'; $('cal-btn').textContent = 'Add to calendar'; }
-    else if (p.cal === calSig(p)) { note.className = 'cap cal-note ok'; note.textContent = 'In your calendar.'; $('cal-btn').textContent = 'Add to calendar again'; }
+    if (!p.cal) { note.className = 'cap cal-note'; note.textContent = (viaSafari ? 'Opens Safari, which adds it to Calendar. ' : '') + 'Adds alerts to your phone\'s calendar, so they ring even with this app closed.'; $('cal-btn').textContent = 'Add to calendar'; }
+    else if (p.cal === calSig(p)) { note.className = 'cap cal-note ok'; note.textContent = 'Sent to Calendar. Not there? Add it again.'; $('cal-btn').textContent = 'Add to calendar again'; }
     else { note.className = 'cap cal-note'; note.textContent = 'The times changed since you added it. Add it again (it should replace the old one).'; $('cal-btn').textContent = 'Add to calendar'; }
     $('cal-btn').onclick = () => addToCalendar(p);
     $('edit-btn').onclick = () => openPlan(p);
@@ -152,8 +152,8 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 const calSig = (p) => { const t = times(p); return [t.free, t.leave, t.arrive, p.what].map(String).join('|'); };
 function icsDate(d) { return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); }
 function icsText(s) { return String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n'); }
-function buildIcs(p) {
-  const t = times(p), heads = Number(store.get('headsup', '10')), seq = p.seq || 0, stamp = icsDate(new Date());
+function buildIcs(p, heads = Number(store.get('headsup', '10'))) {
+  const t = times(p), seq = p.seq || 0, stamp = icsDate(new Date());
   const alarm = (before, text) => ['BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsText(text)}`, `TRIGGER:${before ? `-PT${before}M` : 'PT0M'}`, 'END:VALARM'];
   const event = (key, start, end, title, desc, alarms) => ['BEGIN:VEVENT', `UID:${p.id}-${key}@call-time`, `SEQUENCE:${seq}`, `DTSTAMP:${stamp}`,
     `DTSTART:${icsDate(start)}`, `DTEND:${icsDate(end)}`, `SUMMARY:${icsText(title)}`, `DESCRIPTION:${icsText(desc)}`, 'TRANSP:TRANSPARENT', ...alarms.flat(), 'END:VEVENT'];
@@ -173,24 +173,68 @@ function buildIcs(p) {
   // Lines longer than 75 bytes are folded, as calendar files expect.
   return lines.map((l) => l.length <= 74 ? l : l.match(/.{1,73}/g).join('\r\n ')).join('\r\n') + '\r\n';
 }
+// What works on iPhone (David's tests, 2026-11-14): in Safari, a downloaded calendar file opens Calendar.
+// In a Home Screen app nothing opens Calendar (data: links, real .ics addresses, sharing all fail), so the
+// app opens Safari with the plan in the link (#addcal=…) and Safari offers a one-tap "Add to Calendar".
+const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const homeScreen = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+const viaSafari = ios && homeScreen;
+function downloadIcs(ics, what) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+  a.download = `Call Time - ${what.replace(/[\\/:*?"<>|]/g, '')}.ics`;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+// The plan, packed into a link to this app that Safari can open.
+const calLink = (p) => location.origin + location.pathname + '#addcal=' + encodeURIComponent(JSON.stringify({
+  id: p.id, seq: p.seq || 0, what: p.what, day: p.day, time: p.time, travel: p.travel,
+  steps: p.steps.map((s) => ({ name: s.name, min: s.min })), heads: Number(store.get('headsup', '10')),
+}));
 function addToCalendar(p) {
   p.seq = (p.seq || 0) + (p.cal ? 1 : 0);
-  const ics = buildIcs(p);
-  const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (ios) {
-    // iPhone/iPad: opening the calendar file shows the "Add All" screen.
-    location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+  if (viaSafari) {
+    const link = calLink(p);
+    // If Safari doesn't open (this page never goes to the background), offer the link to copy instead.
+    let left = false;
+    const away = () => { if (document.hidden) left = true; };
+    document.addEventListener('visibilitychange', away);
+    setTimeout(() => { document.removeEventListener('visibilitychange', away); if (!left) calHelp(link); }, 2500);
+    location.href = 'x-safari-' + link;
   } else {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
-    a.download = `Call Time - ${p.what.replace(/[\\/:*?"<>|]/g, '')}.ics`;
-    document.body.append(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    downloadIcs(buildIcs(p), p.what);
   }
   p.cal = calSig(p);
   savePlans();
   render();
 }
+
+/* The Add to Calendar pop-up: in Safari after the Home Screen app sent a plan, or when Safari didn't open. */
+const calSheet = sheet($('cal-sheet'));
+function calHelp(link) {
+  $('cal-sheet-title').textContent = 'Open in Safari';
+  $('cal-sheet-body').innerHTML = `<p>Safari didn't open. Copy this link, open Safari, paste it into the address bar and go.
+    Safari will then add the plan to Calendar.</p>
+    <div class="btns"><button type="button" class="btn primary" id="cal-copy">Copy link</button></div><p class="cap" id="cal-copy-note"></p>`;
+  $('cal-copy').onclick = () => navigator.clipboard.writeText(link)
+    .then(() => { $('cal-copy-note').textContent = 'Copied. Now paste it into Safari.'; })
+    .catch(() => { $('cal-copy-note').textContent = link; });
+  calSheet.open();
+}
+function takeCalLink() {
+  if (!location.hash.startsWith('#addcal=')) return;
+  let p;
+  try { p = JSON.parse(decodeURIComponent(location.hash.slice(8))); arriveDate(p); } catch (e) { return; }
+  history.replaceState(null, '', location.pathname);
+  const t = times(p);
+  $('cal-sheet-title').textContent = 'Add to Calendar';
+  $('cal-sheet-body').innerHTML = `<p><b>${esc(p.what)}</b>: ${esc(dayWord(t.arrive))}, be there at ${esc(clock(t.arrive))}.</p>
+    <div class="btns"><button type="button" class="btn primary" id="cal-add">Add to Calendar</button></div>
+    <p class="cap">Then go back to Call Time. You can close this Safari tab.</p>`;
+  $('cal-add').onclick = () => downloadIcs(buildIcs(p, p.heads), p.what);
+  calSheet.open();
+}
+window.addEventListener('hashchange', takeCalLink);
 
 /* ---------- pop-ups ---------- */
 // Tap outside or the × to close. Forms with typing ask first if something changed.
@@ -397,39 +441,7 @@ $('set-update').onclick = async () => {
   } else { ver.textContent = `You're on the latest version (${window.APP_VERSION}).`; ub.disabled = false; }
 };
 
-/* ---------- TEMPORARY calendar test (2026-11-14): which way opens Calendar on David's iPhone ---------- */
-function testIcs() {
-  const d = new Date(Date.now() + 86400000);
-  return buildIcs({ id: 'calltest', what: 'Call Time test', day: ymd(d), time: '12:00', travel: 30, steps: [{ name: 'Get dressed', min: 10 }] });
-}
-$('caltest').addEventListener('click', async (e) => {
-  const b = e.target.closest('[data-test]');
-  if (!b) return;
-  const ics = testIcs(), n = b.dataset.test, out = $('caltest-out');
-  const dataUrl = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
-  const swUrl = 'cal/plan.ics?d=' + encodeURIComponent(ics);
-  out.textContent = `Tried ${n}${navigator.standalone ? ' (Home Screen app)' : ''}${navigator.serviceWorker && navigator.serviceWorker.controller ? '' : ' (no offline copy yet: 3 and 4 may not work)'}.`;
-  try {
-    if (n === '1') window.open(dataUrl, '_blank');
-    if (n === '2') {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
-      a.download = 'Call Time test.ics';
-      document.body.append(a); a.click(); a.remove();
-    }
-    if (n === '3') location.href = swUrl;
-    if (n === '4') window.open(swUrl, '_blank');
-    if (n === '5') location.href = 'cal-test.ics';
-    // Hands the plain calendar file to the Safari app (iOS 17+), from the Home Screen app.
-    if (n === '7') location.href = 'x-safari-https://' + location.host + location.pathname.replace(/[^/]*$/, '') + 'cal-test.ics';
-    if (n === '6') {
-      const file = new File([ics], 'Call Time test.ics', { type: 'text/calendar' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file] });
-      else out.textContent = 'Tried 6: this device can\'t share files.';
-    }
-  } catch (err) { out.textContent = `Tried ${n}: ${err.message}`; }
-});
-
+takeCalLink();
 tick();
 
 /* ---------- offline support + updates (see sw.js) ---------- */

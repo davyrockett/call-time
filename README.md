@@ -18,6 +18,8 @@ Live: https://www.davyrockett.com/call-time/
 - **Add to calendar** puts "Get ready" and "Leave" events in your phone's calendar with alerts, so they ring
   even when the app is closed. Settings > Calendar heads-up adds an extra alert before your free time ends
   (10 minutes unless you change it). If you edit the times afterwards, the app tells you to add it again.
+  On iPhone, from a Home Screen icon: the button opens Safari, which shows an **Add to Calendar** button
+  (iPhones only open calendar files from Safari). Tap it, then go back to Call Time.
 - Other plans are listed under **Coming up**. Tap one to edit or delete it. A plan disappears once its time
   has passed.
 - **Settings**: your routines (name and minutes), calendar heads-up, appearance, share link, check for updates.

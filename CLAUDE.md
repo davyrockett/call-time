@@ -76,4 +76,9 @@ ready). Live: https://www.davyrockett.com/call-time/ See README.md.
   when closed on iPhone); saved routines; NO automatic cushion; a list of upcoming plans; device only, no sync.
 - Claude's choices, not yet confirmed by David: countdown updates once a minute (no seconds); calendar heads-up
   alert 10 min before free time ends (Settings: Off/5/10/15); starter routines Shower + shave 45, Get dressed 10,
-  Pack gear 20; a plan disappears once its "be there" time passes; on iPhone the calendar opens through a data: link.
+  Pack gear 20; a plan disappears once its "be there" time passes.
+- **Calendar on iPhone (tested by David 2026-11-14, v2/v3 test buttons):** in Safari only a *downloaded* file
+  (Blob + `a.download`) opens Calendar; data: links, real .ics addresses and the share sheet don't. In a Home
+  Screen app nothing opens Calendar, so "Add to calendar" opens Safari via `x-safari-https://…#addcal=<plan JSON>`
+  and Safari's copy shows a one-tap "Add to Calendar" pop-up (`takeCalLink`). If Safari doesn't open within
+  2.5 s, a pop-up offers the link to copy. Not yet confirmed by David: that the Safari hand-off opens.
