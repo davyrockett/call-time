@@ -83,7 +83,7 @@ function render() {
   const p = list[0];
   const hero = $('hero');
   hero.classList.toggle('empty', !p);
-  $('timeline').hidden = $('tl-head').hidden = $('hero-actions').hidden = $('cal-note').hidden = !p;
+  $('timeline').hidden = $('tl-head').hidden = $('hero-actions').hidden = $('alarm-note').hidden = !p;
   if (!p) {
     $('hero-kicker').textContent = 'Nothing planned';
     $('hero-big').className = 'hero-big words';
@@ -121,12 +121,18 @@ function render() {
     row(clock(t.arrive), t.arrive, new Date(8.64e15), p.what, '');
     $('tl-head').textContent = `${p.what} · ${cap1(dayWord(t.arrive, now))}`;
     $('timeline').innerHTML = rows.join('');
-    // Calendar
-    const note = $('cal-note');
-    if (!p.cal) { note.className = 'cap cal-note'; note.textContent = (viaSafari ? 'Opens Safari, which adds it to Calendar. ' : '') + 'Adds alerts to your phone\'s calendar, so they ring even with this app closed.'; $('cal-btn').textContent = 'Add to calendar'; }
-    else if (p.cal === calSig(p)) { note.className = 'cap cal-note ok'; note.textContent = 'Sent to Calendar. Not there? Add it again.'; $('cal-btn').textContent = 'Add to calendar again'; }
-    else { note.className = 'cap cal-note'; note.textContent = 'The times changed since you added it. Add it again (it should replace the old one).'; $('cal-btn').textContent = 'Add to calendar'; }
-    $('cal-btn').onclick = () => addToCalendar(p);
+    // Alarms
+    const note = $('alarm-note'), btn = $('alarm-btn'), list = alarmsFor(p, now);
+    btn.disabled = !ios || tooEarly(p, now) || !list.length;
+    btn.textContent = p.alarms ? 'Set alarms again' : 'Set alarms';
+    note.className = 'cap cal-note';
+    if (!ios) note.textContent = 'Alarms work on iPhone and iPad, with the Shortcuts app.';
+    else if (!list.length) note.textContent = 'No alarms left to set for this plan.';
+    else if (tooEarly(p, now)) note.textContent = `You can set alarms from ${when(new Date(+times(p).leave - 24 * 60 * MIN), now)}. Clock alarms have no date, so they can only be set within a day.`;
+    else if (!p.alarms) note.textContent = `Sets ${list.length === 1 ? 'an alarm' : list.length + ' alarms'} in the Clock app, so they ring even with this app closed.`;
+    else if (p.alarms === alarmSig(p)) { note.className = 'cap cal-note ok'; note.textContent = 'Alarms sent to the Clock app.'; }
+    else note.textContent = 'The times changed. Set alarms again, and turn off the old ones in the Clock app.';
+    btn.onclick = () => setAlarms(p);
     $('edit-btn').onclick = () => openPlan(p);
   }
   // Coming up
@@ -148,93 +154,55 @@ $('add-btn').onclick = () => openPlan(null);
 function tick() { render(); clearTimeout(tick.t); tick.t = setTimeout(tick, MIN - (Date.now() % MIN) + 50); }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') tick(); });
 
-/* ---------- calendar (.ics with alerts) ---------- */
-const calSig = (p) => { const t = times(p); return [t.free, t.leave, t.arrive, p.what].map(String).join('|'); };
-function icsDate(d) { return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''); }
-function icsText(s) { return String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n'); }
-function buildIcs(p, heads = Number(store.get('headsup', '10'))) {
-  const t = times(p), seq = p.seq || 0, stamp = icsDate(new Date());
-  const alarm = (before, text) => ['BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsText(text)}`, `TRIGGER:${before ? `-PT${before}M` : 'PT0M'}`, 'END:VALARM'];
-  const event = (key, start, end, title, desc, alarms) => ['BEGIN:VEVENT', `UID:${p.id}-${key}@call-time`, `SEQUENCE:${seq}`, `DTSTAMP:${stamp}`,
-    `DTSTART:${icsDate(start)}`, `DTEND:${icsDate(end)}`, `SUMMARY:${icsText(title)}`, `DESCRIPTION:${icsText(desc)}`, 'TRANSP:TRANSPARENT', ...alarms.flat(), 'END:VEVENT'];
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//davyrockett//Call Time//EN', 'METHOD:PUBLISH', 'CALSCALE:GREGORIAN'];
-  const plan = [...t.steps.map((s) => `${clock(s.start)} ${s.name} (${mins(s.min)})`), p.travel ? `${clock(t.leave)} Leave (${mins(p.travel)})` : '', `${clock(t.arrive)} ${p.what}`].filter(Boolean).join('\n');
-  const first = (title) => [heads ? alarm(heads, `${heads} minutes of free time left`) : [], alarm(0, title)];
-  if (t.steps.length) {
-    const title = `Get ready: ${t.steps.map((s) => s.name).join(', ')}`;
-    lines.push(...event('ready', t.free, t.leave, title, plan, first(title)));
-  }
-  if (p.travel) {
-    const title = `Leave for ${p.what}`;
-    lines.push(...event('leave', t.leave, t.arrive, title, plan, t.steps.length ? [alarm(0, title)] : first(title)));
-  }
-  if (!t.steps.length && !p.travel) lines.push(...event('at', t.arrive, new Date(+t.arrive + 30 * MIN), p.what, plan, first(p.what)));
-  lines.push('END:VCALENDAR');
-  // Lines longer than 75 bytes are folded, as calendar files expect.
-  return lines.map((l) => l.length <= 74 ? l : l.match(/.{1,73}/g).join('\r\n ')).join('\r\n') + '\r\n';
-}
-// What works on iPhone (David's tests, 2026-11-14): in Safari, a downloaded calendar file opens Calendar.
-// In a Home Screen app nothing opens Calendar (data: links, real .ics addresses, sharing all fail), so the
-// app opens Safari with the plan in the link (#addcal=…) and Safari offers a one-tap "Add to Calendar".
+/* ---------- alarms in the Clock app (through the "Call Time Alarms" shortcut) ---------- */
+// Calendar files never opened reliably on David's iPhone (2026-11-14), so Call Time sets Clock alarms instead.
+// A web app can't make alarms itself; it opens Shortcuts with the alarms as text, one per line, e.g.
+// "9:45 AM Get ready for Idlewild: Shower". The shortcut finds the time in each line and creates an alarm with
+// the line as its label. Setup steps are in Settings. Clock alarms have no date, so this only works
+// within 24 hours of leaving.
+const SHORTCUT = 'Call Time Alarms';
 const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const homeScreen = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
-const viaSafari = ios && homeScreen;
-function downloadIcs(ics, what) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
-  a.download = `Call Time - ${what.replace(/[\\/:*?"<>|]/g, '')}.ics`;
-  document.body.append(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+const alarmSig = (p) => { const t = times(p); return [t.free, t.leave, t.arrive, p.what].map(String).join('|'); };
+// "9:45 AM", always in this form so the shortcut can read it.
+const ampm = (d) => `${d.getHours() % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')} ${d.getHours() < 12 ? 'AM' : 'PM'}`;
+function alarmsFor(p, now = new Date()) {
+  const t = times(p), heads = Number(store.get('headsup', '10')), out = [];
+  const first = t.steps.length ? t.free : p.travel ? t.leave : t.arrive;
+  if (heads) out.push([new Date(+first - heads * MIN), 'Free time almost over']);
+  if (t.steps.length) out.push([t.free, `Get ready for ${p.what}: ${t.steps[0].name}`]);
+  if (p.travel) out.push([t.leave, `Leave for ${p.what}`]);
+  if (!t.steps.length && !p.travel) out.push([t.arrive, p.what]);
+  return out.filter(([d]) => d > now);
 }
-// The plan, packed into a link to this app that Safari can open.
-const calLink = (p) => location.origin + location.pathname + '#addcal=' + encodeURIComponent(JSON.stringify({
-  id: p.id, seq: p.seq || 0, what: p.what, day: p.day, time: p.time, travel: p.travel,
-  steps: p.steps.map((s) => ({ name: s.name, min: s.min })), heads: Number(store.get('headsup', '10')),
-}));
-function addToCalendar(p) {
-  p.seq = (p.seq || 0) + (p.cal ? 1 : 0);
-  if (viaSafari) {
-    const link = calLink(p);
-    // If Safari doesn't open (this page never goes to the background), offer the link to copy instead.
-    let left = false;
-    const away = () => { if (document.hidden) left = true; };
-    document.addEventListener('visibilitychange', away);
-    setTimeout(() => { document.removeEventListener('visibilitychange', away); if (!left) calHelp(link); }, 2500);
-    location.href = 'x-safari-' + link;
-  } else {
-    downloadIcs(buildIcs(p), p.what);
-  }
-  p.cal = calSig(p);
+// The time goes first: the shortcut uses the first time it finds, and a plan name might contain numbers.
+const alarmText = (list) => list.map(([d, label]) => `${ampm(d)} ${label}`).join('\n');
+// Clock alarms ring at the next time of day that matches, so they can only be set within 24 hours.
+const tooEarly = (p, now = new Date()) => times(p).leave - now > 24 * 60 * MIN;
+function runShortcut(text) {
+  const url = `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT)}&input=text&text=${encodeURIComponent(text)}`;
+  // If Shortcuts doesn't open (this page never goes to the background), say so.
+  let left = false;
+  const away = () => { if (document.hidden) left = true; };
+  document.addEventListener('visibilitychange', away);
+  setTimeout(() => { document.removeEventListener('visibilitychange', away); if (!left) alarmHelp(); }, 2500);
+  location.href = url;
+}
+function setAlarms(p) {
+  const list = alarmsFor(p);
+  if (!list.length) return;
+  runShortcut(alarmText(list));
+  p.alarms = alarmSig(p);
   savePlans();
   render();
 }
-
-/* The Add to Calendar pop-up: in Safari after the Home Screen app sent a plan, or when Safari didn't open. */
-const calSheet = sheet($('cal-sheet'));
-function calHelp(link) {
-  $('cal-sheet-title').textContent = 'Open in Safari';
-  $('cal-sheet-body').innerHTML = `<p>Safari didn't open. Copy this link, open Safari, paste it into the address bar and go.
-    Safari will then add the plan to Calendar.</p>
-    <div class="btns"><button type="button" class="btn primary" id="cal-copy">Copy link</button></div><p class="cap" id="cal-copy-note"></p>`;
-  $('cal-copy').onclick = () => navigator.clipboard.writeText(link)
-    .then(() => { $('cal-copy-note').textContent = 'Copied. Now paste it into Safari.'; })
-    .catch(() => { $('cal-copy-note').textContent = link; });
-  calSheet.open();
+const alarmSheet = sheet($('alarm-sheet'));
+function alarmHelp() {
+  $('alarm-sheet-body').innerHTML = `<p>Shortcuts didn't open, so no alarms were set.</p>
+    <p class="cap">${ios ? `Check that the "${esc(SHORTCUT)}" shortcut is set up (Settings &gt; Alarms setup), then try again.`
+      : 'Alarms work on iPhone and iPad, with the Shortcuts app.'}</p>`;
+  alarmSheet.open();
 }
-function takeCalLink() {
-  if (!location.hash.startsWith('#addcal=')) return;
-  let p;
-  try { p = JSON.parse(decodeURIComponent(location.hash.slice(8))); arriveDate(p); } catch (e) { return; }
-  history.replaceState(null, '', location.pathname);
-  const t = times(p);
-  $('cal-sheet-title').textContent = 'Add to Calendar';
-  $('cal-sheet-body').innerHTML = `<p><b>${esc(p.what)}</b>: ${esc(dayWord(t.arrive))}, be there at ${esc(clock(t.arrive))}.</p>
-    <div class="btns"><button type="button" class="btn primary" id="cal-add">Add to Calendar</button></div>
-    <p class="cap">Then go back to Call Time. You can close this Safari tab.</p>`;
-  $('cal-add').onclick = () => downloadIcs(buildIcs(p, p.heads), p.what);
-  calSheet.open();
-}
-window.addEventListener('hashchange', takeCalLink);
+$('alarm-test').onclick = () => runShortcut(alarmText([[new Date(Date.now() + 2 * MIN), 'Call Time test']]));
 
 /* ---------- pop-ups ---------- */
 // Tap outside or the × to close. Forms with typing ask first if something changed.
@@ -359,7 +327,7 @@ form.addEventListener('submit', (e) => {
   render();
 });
 $('plan-delete').onclick = () => {
-  if (!confirm(`Delete the plan for ${editing.what}?` + (editing.cal ? ' Its calendar events stay in your calendar; delete them there.' : ''))) return;
+  if (!confirm(`Delete the plan for ${editing.what}?` + (editing.alarms ? ' Its alarms stay in the Clock app; turn them off there.' : ''))) return;
   plans = plans.filter((p) => p !== editing);
   savePlans();
   planSheet.close(false);
@@ -441,7 +409,6 @@ $('set-update').onclick = async () => {
   } else { ver.textContent = `You're on the latest version (${window.APP_VERSION}).`; ub.disabled = false; }
 };
 
-takeCalLink();
 tick();
 
 /* ---------- offline support + updates (see sw.js) ---------- */

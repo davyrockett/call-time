@@ -74,13 +74,18 @@ ready). Live: https://www.davyrockett.com/call-time/ See README.md.
 - **Test locally:** `python3 -m http.server 8783` here, open http://localhost:8783/.
 - Files: `index.html`, `styles.css`, `app.js`. localStorage keys start with `ct.` (`plans`, `routines`, `theme`, `headsup`).
 - David's choices (2026-11-14): name "Call Time" (the gig term); biggest thing on screen = free time left, with
-  "Free until 10:45" under it; reminders through a calendar file with alerts (.ics; a web app can't ring reliably
-  when closed on iPhone); saved routines; NO automatic cushion; a list of upcoming plans; device only, no sync.
-- Claude's choices, not yet confirmed by David: countdown updates once a minute (no seconds); calendar heads-up
-  alert 10 min before free time ends (Settings: Off/5/10/15); starter routines Shower + shave 45, Get dressed 10,
+  "Free until 10:45" under it; reminders as **Clock app alarms** (changed from calendar files the same day,
+  "This calendar function just doesn't seem to work well"); saved routines; NO automatic cushion; a list of upcoming plans; device only, no sync.
+- Claude's choices, not yet confirmed by David: countdown updates once a minute (no seconds); alarm heads-up
+  10 min before free time ends (Settings: Off/5/10/15); starter routines Shower + shave 45, Get dressed 10,
   Pack gear 20; a plan disappears once its "be there" time passes.
-- **Calendar on iPhone (tested by David 2026-11-14, v2/v3 test buttons):** in Safari only a *downloaded* file
-  (Blob + `a.download`) opens Calendar; data: links, real .ics addresses and the share sheet don't. In a Home
-  Screen app nothing opens Calendar, so "Add to calendar" opens Safari via `x-safari-https://…#addcal=<plan JSON>`
-  and Safari's copy shows a one-tap "Add to Calendar" pop-up (`takeCalLink`). If Safari doesn't open within
-  2.5 s, a pop-up offers the link to copy. Not yet confirmed by David: that the Safari hand-off opens.
+- **Alarms (v6, 2026-11-14):** a web app can't make Clock alarms, so "Set alarms" opens
+  `shortcuts://run-shortcut?name=Call%20Time%20Alarms&input=text&text=…`, one alarm per line, time first
+  ("9:45 AM Get ready for Idlewild: Shower + shave"). David builds the shortcut once from the steps in Settings:
+  Split Text (Shortcut Input, New Lines) → Repeat with Each → Get Dates from Input (Repeat Item) → Create Alarm
+  (time = Dates, label = Repeat Item). Alarms: heads-up (Settings, "Free time almost over"), start getting ready,
+  leave. Clock alarms have no date, so the button is greyed until 24 h before leaving; old alarms stay in Clock
+  (turned off once rung). If the page never goes to the background within 2.5 s, a pop-up says Shortcuts
+  didn't open. Not yet confirmed on David's iPhone.
+- **Calendar files, dropped (tested by David 2026-11-14):** in iPhone Safari only a downloaded Blob file opened
+  Calendar; in a Home Screen app nothing did (data: links, real .ics URLs, SW-made .ics, share sheet).

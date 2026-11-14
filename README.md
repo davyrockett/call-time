@@ -15,14 +15,16 @@ Live: https://www.davyrockett.com/call-time/
   - while getting ready: the step you should be on and when to leave;
   - after the leave time: "Time to leave" / "On your way".
   - Below: the whole timeline, with where you are now highlighted.
-- **Add to calendar** puts "Get ready" and "Leave" events in your phone's calendar with alerts, so they ring
-  even when the app is closed. Settings > Calendar heads-up adds an extra alert before your free time ends
-  (10 minutes unless you change it). If you edit the times afterwards, the app tells you to add it again.
-  On iPhone, from a Home Screen icon: the button opens Safari, which shows an **Add to Calendar** button
-  (iPhones only open calendar files from Safari). Tap it, then go back to Call Time.
+- **Set alarms** puts alarms in the Clock app, so they ring even when Call Time is closed: one when your free
+  time is almost over (Settings > Alarm heads-up, 10 minutes unless you change it), one when it's time to start
+  getting ready, and one when it's time to leave. Shortcuts opens for a moment to set them.
+  - It needs a shortcut called **Call Time Alarms**, made once on your iPhone. The steps are in Settings >
+    Alarms setup, with a **Send a test alarm** button to check it.
+  - Clock alarms have no date, so you can set them from 24 hours before you leave.
+  - If you change the times, set alarms again and turn off the old ones in Clock.
 - Other plans are listed under **Coming up**. Tap one to edit or delete it. A plan disappears once its time
   has passed.
-- **Settings**: your routines (name and minutes), calendar heads-up, appearance, share link, check for updates.
+- **Settings**: your routines (name and minutes), alarms setup, alarm heads-up, appearance, share link, check for updates.
 
 The countdown changes once a minute, never every second: a ticking clock is what we're getting away from.
 There is no automatic cushion: if you want spare time, set "Be there at" a bit earlier.

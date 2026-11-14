@@ -54,10 +54,10 @@
       <p class="tl-head" id="tl-head"></p>
       <ol class="timeline" id="timeline"></ol>
       <div class="hero-actions" id="hero-actions">
-        <button type="button" class="btn primary" id="cal-btn">Add to calendar</button>
+        <button type="button" class="btn primary" id="alarm-btn">Set alarms</button>
         <button type="button" class="btn" id="edit-btn">Edit</button>
       </div>
-      <p class="cap cal-note" id="cal-note"></p>
+      <p class="cap cal-note" id="alarm-note"></p>
     </section>
 
     <section class="later" id="later-wrap">
@@ -123,8 +123,25 @@
         <ul class="routines" id="routines"></ul>
         <button type="button" class="btn" id="routine-add">+ Add a routine</button>
       </div>
-      <div class="set-row"><div><b>Calendar heads-up</b><p class="cap">An extra alert this long before your free time ends.</p></div>
-        <div class="seg" data-key="headsup" role="group" aria-label="Calendar heads-up">
+      <div class="set-block">
+        <b>Alarms setup</b>
+        <p class="cap">Call Time sets alarms in the Clock app through a shortcut. Make it once on your iPhone:</p>
+        <details class="howto"><summary>Show the steps</summary>
+          <ol>
+            <li>Open the <b>Shortcuts</b> app and tap <b>+</b>.</li>
+            <li>Tap the name at the top, choose <b>Rename</b> and call it exactly <b>Call Time Alarms</b>.</li>
+            <li>Search the actions for <b>Split Text</b> and add it. Tap its first blue word and pick <b>Shortcut Input</b>. Leave "New Lines".</li>
+            <li>Add <b>Repeat with Each</b>. It repeats with each item in Split Text.</li>
+            <li>Inside the repeat, add <b>Get Dates from Input</b>. Tap its blue word and pick <b>Repeat Item</b>.</li>
+            <li>Under that (still inside the repeat), add <b>Create Alarm</b>. Set the time to <b>Dates</b>. Tap the arrow to show more, and set the label to <b>Repeat Item</b>.</li>
+            <li>Tap <b>Done</b>, come back here and tap <b>Send a test alarm</b>. The first time, allow the shortcut to use Clock.</li>
+          </ol>
+        </details>
+        <button type="button" class="btn" id="alarm-test">Send a test alarm</button>
+        <p class="cap">The test sets one alarm, "Call Time test", for 2 minutes from now. Turn it off in Clock afterwards.</p>
+      </div>
+      <div class="set-row"><div><b>Alarm heads-up</b><p class="cap">An extra alarm this long before your free time ends.</p></div>
+        <div class="seg" data-key="headsup" role="group" aria-label="Alarm heads-up">
           <button type="button" class="btn" data-v="0">Off</button><button type="button" class="btn" data-v="5">5 m</button><button type="button" class="btn" data-v="10">10 m</button><button type="button" class="btn" data-v="15">15 m</button>
         </div></div>
       <div class="set-row"><div><b>Appearance</b><p class="cap">Light unless you change it. Auto follows your device's light or dark setting.</p></div>
@@ -139,14 +156,14 @@
   </div>
 </div>
 
-<!-- Add to Calendar (in Safari, sent from the Home Screen app) / Safari didn't open -->
-<div class="tmodal" id="cal-sheet" role="dialog" aria-modal="true" aria-labelledby="cal-sheet-title" hidden>
+<!-- Shortcuts didn't open -->
+<div class="tmodal" id="alarm-sheet" role="dialog" aria-modal="true" aria-labelledby="alarm-sheet-title" hidden>
   <div class="tmodal-card">
     <div class="sheet-head">
-      <h2 id="cal-sheet-title">Add to Calendar</h2>
+      <h2 id="alarm-sheet-title">No alarms set</h2>
       <button type="button" class="btn icon x" data-close aria-label="Close" title="Close"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
-    <div class="settings" id="cal-sheet-body"></div>
+    <div class="settings" id="alarm-sheet-body"></div>
   </div>
 </div>
 
@@ -154,7 +171,7 @@
 
 <script>
 // The version shown in Settings. tools/bump.sh keeps this in step with VERSION in sw.js.
-window.APP_VERSION = 'v5';
+window.APP_VERSION = 'v6';
 </script>
 <script src="app.js"></script>
 </body>
