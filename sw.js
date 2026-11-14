@@ -2,7 +2,7 @@
 //
 // IMPORTANT: whenever any file below changes, bump VERSION (tools/bump.sh).
 // That is how phones learn there's an update to download.
-const VERSION = 'v4';
+const VERSION = 'v5';
 const CACHE = `calltime-${VERSION}`;
 
 const ASSETS = [
@@ -21,9 +21,13 @@ const ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) =>
-      cache.addAll(ASSETS.map((url) => new Request(url, { cache: 'reload' })))
-    )
+    // Each file is fetched with ?sw=<version> on the end. GitHub's servers keep old copies for up to
+    // 10 minutes after an update; a new address has no old copy, so the phone never saves a stale file.
+    caches.open(CACHE).then((cache) => Promise.all(ASSETS.map(async (url) => {
+      const res = await fetch(new Request(`${url}${url.includes('?') ? '&' : '?'}sw=${VERSION}`, { cache: 'reload' }));
+      if (!res.ok) throw new Error(`Couldn't download ${url}`);
+      await cache.put(url, res);
+    })))
   );
 });
 

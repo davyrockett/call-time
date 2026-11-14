@@ -69,6 +69,8 @@ ready). Live: https://www.davyrockett.com/call-time/ See README.md.
 
 - **Publish:** run `tools/bump.sh` (bumps `sw.js` VERSION and `window.APP_VERSION` in index.html), commit, push,
   confirm the live `sw.js` shows the new version.
+- **Offline copy fetches `?sw=<version>`** (2026-11-14): GitHub's servers cache files for 10 min (`max-age=600`), and
+  David's phone once saved the old v3 page inside the v4 offline copy. Keep the query in `sw.js` install.
 - **Test locally:** `python3 -m http.server 8783` here, open http://localhost:8783/.
 - Files: `index.html`, `styles.css`, `app.js`. localStorage keys start with `ct.` (`plans`, `routines`, `theme`, `headsup`).
 - David's choices (2026-11-14): name "Call Time" (the gig term); biggest thing on screen = free time left, with
