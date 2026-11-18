@@ -142,7 +142,12 @@
       <div class="set-row" data-share><div><b>Share this app</b><p class="cap" data-share-link></p></div>
         <div class="btns"><button type="button" class="btn" data-share-copy>Copy link</button><button type="button" class="btn" data-share-send hidden>Share…</button></div></div>
       <div class="set-row"><div><b>App version</b><p class="cap" id="ver-line"></p></div><button type="button" class="btn" id="set-update">Check for updates</button></div>
-      <p class="cap">Your plans and settings are saved on this device only.</p>
+      <div class="set-block">
+        <b>Syncing and the iPhone widget</b>
+        <p class="cap" id="sync-line">Checking…</p>
+        <p class="cap">The widget needs the free <b>Scriptable</b> app with the <b>Call Time</b> script in it. Then tap below once to connect it, and add a Scriptable widget to your Home Screen or Lock Screen and choose Call Time.</p>
+        <button type="button" class="btn" id="widget-connect">Connect the widget</button>
+      </div>
     </div>
   </div>
 </div>
@@ -162,7 +167,7 @@
 
 <script>
 // The version shown in Settings. tools/bump.sh keeps this in step with VERSION in sw.js.
-window.APP_VERSION = 'v8';
+window.APP_VERSION = 'v9';
 </script>
 <script src="app.js"></script>
 </body>

@@ -75,7 +75,7 @@ ready). Live: https://www.davyrockett.com/call-time/ See README.md.
 - Files: `index.html`, `styles.css`, `app.js`. localStorage keys start with `ct.` (`plans`, `routines`, `theme`, `headsup`).
 - David's choices (2026-11-14): name "Call Time" (the gig term); biggest thing on screen = free time left, with
   "Free until 10:45" under it; reminders as **Clock app alarms** (changed from calendar files the same day,
-  "This calendar function just doesn't seem to work well"); saved routines; NO automatic cushion; a list of upcoming plans; device only, no sync.
+  "This calendar function just doesn't seem to work well"); saved routines; NO automatic cushion; a list of upcoming plans; device only, no sync (changed 2026-11-17, see below).
 - Claude's choices, not yet confirmed by David: countdown updates once a minute (no seconds); alarm heads-up
   10 min before free time ends (Settings: Off/5/10/15); starter routines Shower + shave 45, Get dressed 10,
   Pack gear 20; a plan disappears once its "be there" time passes.
@@ -95,3 +95,13 @@ ready). Live: https://www.davyrockett.com/call-time/ See README.md.
   didn't open. Confirmed working on David's iPhone 2026-11-14 (test alarm appeared in Clock).
 - **Calendar files, dropped (tested by David 2026-11-14):** in iPhone Safari only a downloaded Blob file opened
   Calendar; in a Home Screen app nothing did (data: links, real .ics URLs, SW-made .ics, share sheet).
+- **Syncing + iPhone widget (2026-11-17, David: "Is it possible to make an ios widget for it?", then "Go ahead";
+  "This idea really does seem to be helping my time anxiety").** Plans and routines also go to the PRIVATE repo
+  `davyrockett/call-time-data` (`plans.json`: `{updated, plans, routines}`), newest change wins (`syncNow` in app.js).
+  Key: `ct.sync-token` (Apps screen's "Save for every app"), else another app's key on the same site. Pruning past
+  plans is not a change to save. The widget is a **Scriptable** script, master copy `widget/Call Time.js`, copied
+  into Scriptable's iCloud Drive folder (`~/Library/Mobile Documents/iCloud~dk~simonbs~Scriptable/Documents/`).
+  Settings > "Connect the widget" opens `scriptable:///run/Call%20Time?key=…`; the script keeps the key in Keychain.
+  Widget: relative countdown (no seconds), small/medium/Lock Screen; iOS decides refresh times, so new plans can
+  take ~15 min to show. Test it in node with stand-ins for Scriptable's objects (no Scriptable on the Mac).
+  The Apps screen's Call Time card + header line read `ct.plans` from the same site's storage.

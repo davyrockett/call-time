@@ -20,8 +20,91 @@ if (!routines) {
   store.set('routines', routines);
 }
 let plans = store.get('plans', []);
-const savePlans = () => store.set('plans', plans);
-const saveRoutines = () => store.set('routines', routines);
+const savePlans = () => { store.set('plans', plans); changed(); };
+const saveRoutines = () => { store.set('routines', routines); changed(); };
+
+/* ---------- saving to GitHub (2026-11-17) ---------- */
+// Plans and routines are also kept in the private davyrockett/call-time-data repo (plans.json), so they're the same
+// on every device and the Call Time widget on David's iPhone (Scriptable, widget/Call Time.js) can read them.
+// Key: 'ct.sync-token', saved by the Apps screen's "Save for every app"; if that's missing, the key one of David's
+// other apps already keeps on this site (they all use the same access key). The newest change wins.
+const DATA_URL = 'https://api.github.com/repos/davyrockett/call-time-data/contents/plans.json';
+const KEYS = ['ct.sync-token', 'rundown.sync-token', 'sn.sync-token', 'ml.sync-token', 'sp.sync-token', 'sosed.sync-token',
+  'ge150.sync-token', 'healthlog-sync-token', 'z4log-sync-token'];
+function syncKey() {
+  for (const k of KEYS) { try { const v = localStorage.getItem(k); if (v) return v; } catch (e) { /* blocked */ } }
+  try { return JSON.parse(localStorage.getItem('js.syncToken')) || ''; } catch (e) { return ''; }
+}
+const content = () => JSON.stringify({ plans, routines });
+let lastContent = content();
+const sync = { state: '', at: 0, timer: 0, busy: false };
+// Something was changed here: remember when, and save it to GitHub shortly.
+function changed() {
+  const c = content();
+  if (c === lastContent) return;
+  lastContent = c;
+  store.set('edit-at', Date.now());
+  clearTimeout(sync.timer);
+  sync.timer = setTimeout(syncNow, 1500);
+}
+const toB64 = (s) => { let bin = ''; new TextEncoder().encode(s).forEach((b) => { bin += String.fromCharCode(b); }); return btoa(bin); };
+const fromB64 = (s) => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, '')), (c) => c.charCodeAt(0)));
+async function gh(key, opts = {}) {
+  return fetch(DATA_URL, { cache: 'no-store', ...opts, headers: { Authorization: `Bearer ${key}`, Accept: 'application/vnd.github+json' } });
+}
+// Brings this device and GitHub level: takes GitHub's copy if it's newer, otherwise saves this one there.
+async function syncNow() {
+  const key = syncKey();
+  if (!key) { sync.state = 'no-key'; drawSync(); return; }
+  if (sync.busy || !navigator.onLine) return;
+  sync.busy = true;
+  try {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const res = await gh(key).catch(() => null);
+      if (!res) { sync.state = 'offline'; break; }
+      if (!res.ok) { sync.state = res.status === 401 ? 'bad-key' : 'no-access'; break; }
+      const file = await res.json();
+      const remote = JSON.parse(fromB64(file.content));
+      const seen = store.get('sync-last', 0), editAt = store.get('edit-at', 0);
+      const dirty = content() !== store.get('synced', '');
+      // GitHub has something newer than this device has seen, and it's newer than any change made here: take it.
+      if (remote.updated > seen && (!dirty || remote.updated > editAt)) {
+        if (!$('plan-sheet').hidden || !$('settings-sheet').hidden) break;   // not while a form is open
+        plans = Array.isArray(remote.plans) ? remote.plans : [];
+        if (Array.isArray(remote.routines) && remote.routines.length) routines = remote.routines;
+        store.set('plans', plans); store.set('routines', routines);
+        lastContent = content();
+        store.set('synced', lastContent); store.set('sync-last', remote.updated);
+        sync.state = 'ok'; sync.at = Date.now();
+        render();
+        break;
+      }
+      if (!dirty) { sync.state = 'ok'; sync.at = Date.now(); break; }
+      const updated = Date.now();
+      const body = JSON.stringify({ updated, plans, routines }, null, 1) + '\n';
+      const put = await gh(key, { method: 'PUT', body: JSON.stringify({ message: 'Call Time plans', content: toB64(body), sha: file.sha }) }).catch(() => null);
+      if (!put) { sync.state = 'offline'; break; }
+      if (put.ok) { store.set('synced', content()); store.set('sync-last', updated); sync.state = 'ok'; sync.at = Date.now(); break; }
+      if (put.status !== 409 && put.status !== 422) { sync.state = 'no-access'; break; }   // saved elsewhere meanwhile: read again
+    }
+  } finally {
+    sync.busy = false;
+    drawSync();
+  }
+}
+function drawSync() {
+  const line = document.getElementById('sync-line');
+  if (!line) return;
+  line.textContent = {
+    'no-key': 'No access key on this device, so your plans stay here and the widget can\'t see them. Add your key on the Apps screen (Settings > Access key).',
+    'bad-key': 'GitHub didn\'t accept the access key on this device (mistyped or expired).',
+    'no-access': 'Your access key can\'t reach the call-time-data repo yet. Give it access on GitHub.',
+    offline: 'Offline. Your plans will be saved to GitHub when you\'re back online.',
+    ok: `Your plans are saved to GitHub, so they're the same on every device and the widget can show them.${sync.at ? ` Last checked ${new Date(sync.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.` : ''}`,
+  }[sync.state] || 'Checking…';
+  const btn = document.getElementById('widget-connect');
+  if (btn) btn.disabled = !syncKey();
+}
 
 /* ---------- times ---------- */
 const MIN = 60000;
@@ -73,7 +156,7 @@ const $ = (id) => document.getElementById(id);
 function upcoming(now = new Date()) {
   // A plan is finished once you're due to be there. Drop it then.
   const keep = plans.filter((p) => arriveDate(p) > now);
-  if (keep.length !== plans.length) { plans = keep; savePlans(); }
+  if (keep.length !== plans.length) { plans = keep; store.set('plans', plans); lastContent = content(); }   // not a change to save
   return plans.slice().sort((a, b) => arriveDate(a) - arriveDate(b));
 }
 
@@ -152,7 +235,8 @@ $('add-btn').onclick = () => openPlan(null);
 
 // Update on the minute (no seconds: a ticking clock is the thing we're trying to get away from).
 function tick() { render(); clearTimeout(tick.t); tick.t = setTimeout(tick, MIN - (Date.now() % MIN) + 50); }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') tick(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { tick(); syncNow(); } });
+addEventListener('online', () => syncNow());
 
 /* ---------- alarms in the Clock app (through the "Call Time Alarms" shortcut) ---------- */
 // Calendar files never opened reliably on David's iPhone (2026-11-14), so Call Time sets Clock alarms instead.
@@ -390,6 +474,7 @@ $('settings-open').onclick = () => {
   saveRoutines(); drawRoutines(); markSegs();
   $('ver-line').textContent = `You're on ${window.APP_VERSION}.`;
   $('set-update').disabled = false;
+  drawSync();
   settingsSheet.open();
 };
 // Routines left blank are dropped when Settings closes.
@@ -409,7 +494,15 @@ $('set-update').onclick = async () => {
   } else { ver.textContent = `You're on the latest version (${window.APP_VERSION}).`; ub.disabled = false; }
 };
 
+// Hands the access key to the widget (Scriptable's "Call Time" script saves it in the iPhone's Keychain).
+$('widget-connect').onclick = () => {
+  const key = syncKey();
+  if (key) location.href = `scriptable:///run/${encodeURIComponent('Call Time')}?key=${encodeURIComponent(key)}`;
+};
+$('widget-connect').hidden = !ios;
+
 tick();
+syncNow();
 
 /* ---------- offline support + updates (see sw.js) ---------- */
 (async () => {
