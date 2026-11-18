@@ -211,6 +211,9 @@ const { plans, ok } = await loadPlans();
 const st = state(plans, now);
 const family = config.widgetFamily || 'small';
 const widget = family.startsWith('accessory') ? lockWidget(st, now, family) : homeWidget(st, now, family);
+// A tap opens Call Time in Safari, which keeps its own storage: hand it the key so it can load the plans too.
+// After '#', so it never goes over the internet; Call Time saves it and wipes it from the address.
+if (key) widget.url = `${APP_URL}#k=${encodeURIComponent(key)}`;
 // Look again when the next part starts (iOS decides exactly when), and at least every 15 minutes for new plans.
 const soon = new Date(+now + 15 * MIN);
 widget.refreshAfterDate = st.next && st.next < soon ? new Date(+st.next + 30000) : soon;

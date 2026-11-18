@@ -105,3 +105,7 @@ ready). Live: https://www.davyrockett.com/call-time/ See README.md.
   Widget: relative countdown (no seconds), small/medium/Lock Screen; iOS decides refresh times, so new plans can
   take ~15 min to show. Test it in node with stand-ins for Scriptable's objects (no Scriptable on the Mac).
   The Apps screen's Call Time card + header line read `ct.plans` from the same site's storage.
+  Tapping the widget opens Call Time in **Safari** (a widget can't open the Home Screen app), whose storage is
+  separate, so the widget's link carries the key after `#k=`; app.js saves it as `ct.sync-token` and wipes it from the
+  address (2026-11-17, David: test plan "not showing ... in the browser that it opens"). David keeps the widget on
+  the **Lock Screen** only (rectangular, beside weather), not the Home Screen.

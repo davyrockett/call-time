@@ -31,6 +31,14 @@ const saveRoutines = () => { store.set('routines', routines); changed(); };
 const DATA_URL = 'https://api.github.com/repos/davyrockett/call-time-data/contents/plans.json';
 const KEYS = ['ct.sync-token', 'rundown.sync-token', 'sn.sync-token', 'ml.sync-token', 'sp.sync-token', 'sosed.sync-token',
   'ge150.sync-token', 'healthlog-sync-token', 'z4log-sync-token'];
+// Opened by tapping the iPhone widget (2026-11-17): that opens Safari, whose storage is separate from the Home Screen
+// app's, so the widget passes the access key in the address (#k=…). Save it, then wipe it from the address at once.
+(() => {
+  const m = location.hash.match(/[#&]k=([^&]+)/);
+  if (!m) return;
+  try { localStorage.setItem('ct.sync-token', decodeURIComponent(m[1])); } catch (e) { /* private mode */ }
+  history.replaceState(null, '', location.pathname + location.search);
+})();
 function syncKey() {
   for (const k of KEYS) { try { const v = localStorage.getItem(k); if (v) return v; } catch (e) { /* blocked */ } }
   try { return JSON.parse(localStorage.getItem('js.syncToken')) || ''; } catch (e) { return ''; }
